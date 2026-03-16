@@ -1,17 +1,60 @@
 /**
- * Game Engine — The Drowned Meridian (Phase 2)
+ * Game Engine — The Drowned Meridian (Phase 4)
  *
- * Connection-based sea travel, formalized turn structure,
- * corruption intensity, Drowned God antagonist, awakening effects.
+ * Difficulty modes, resources (supplies/wards), save/load,
+ * enhanced stats screens, accessibility.
  */
 
 (function () {
   "use strict";
 
+  // ─── DIFFICULTY PRESETS ─────────────────────────────────────
+  const DIFFICULTY = {
+    easy: {
+      label: "Fair Winds",
+      startSanity: 120,
+      startSupplies: 14,
+      corruptionSpeedMod: 0.5,     // corruption spreads half as often
+      sealCostMod: 0,
+      initialCorruption: 3,
+      fogOfWar: false
+    },
+    normal: {
+      label: "Charted Waters",
+      startSanity: 100,
+      startSupplies: 10,
+      corruptionSpeedMod: 1.0,
+      sealCostMod: 0,
+      initialCorruption: 5,
+      fogOfWar: false
+    },
+    hard: {
+      label: "Storm Season",
+      startSanity: 80,
+      startSupplies: 8,
+      corruptionSpeedMod: 1.25,
+      sealCostMod: 5,
+      initialCorruption: 7,
+      fogOfWar: false
+    },
+    nightmare: {
+      label: "Blind Meridian",
+      startSanity: 70,
+      startSupplies: 6,
+      corruptionSpeedMod: 1.0,
+      sealCostMod: 3,
+      initialCorruption: 5,
+      fogOfWar: true
+    }
+  };
+
   // ─── GAME STATE ──────────────────────────────────────────────
   const state = {
+    difficulty: "normal",
     turn: 1,
     sanity: 100,
+    supplies: 10,
+    wards: 0,
     reinforcedSeals: [],
     corruptedPorts: {},     // portId → intensity (1-3), replaces flat array
     visitedPorts: [],
@@ -37,6 +80,10 @@
   };
 
   // ─── HELPERS ────────────────────────────────────────────────
+  function getDifficulty() {
+    return DIFFICULTY[state.difficulty] || DIFFICULTY.normal;
+  }
+
   function isCorrupted(portId) {
     return portId in state.corruptedPorts;
   }
@@ -190,12 +237,16 @@
       // Pre-game: pick starting port
       buttons = `<button class="popup-btn" onclick="GAME.startAt('${port.id}')">Begin voyage here</button>`;
     } else if (isHere) {
-      // At current port: investigate, rest, study
+      // At current port: investigate, rest, study, resupply
       if (!state.investigatedThisTurn) {
         buttons += `<button class="popup-btn" onclick="GAME.investigate('${port.id}')">Investigate</button> `;
       }
-      buttons += `<button class="popup-btn" onclick="GAME.rest()">Rest (+8 Sanity, end turn)</button> `;
-      buttons += `<button class="popup-btn" onclick="GAME.studyCharts()">Study Charts (reveal nearby corruption)</button>`;
+      const recovery = state.awakeningLevel >= 3 ? 4 : state.awakeningLevel >= 2 ? 6 : 8;
+      buttons += `<button class="popup-btn" onclick="GAME.rest()">Rest (+${recovery} Sanity, end turn)</button> `;
+      buttons += `<button class="popup-btn" onclick="GAME.studyCharts()">Study Charts</button> `;
+      if (state.supplies < getDifficulty().startSupplies) {
+        buttons += `<button class="popup-btn" onclick="GAME.resupply()">Resupply (+3, end turn)</button> `;
+      }
     } else if (connected.includes(port.id)) {
       // Connected port: can sail
       const dist = getDistance(state.currentPort, port);
@@ -253,10 +304,11 @@
     state.turn++;
     state.investigatedThisTurn = false;
 
-    // Corruption spreads
+    // Corruption spreads (scaled by difficulty)
+    const diff = getDifficulty();
     const baseSpread = 1 + Math.floor(state.turn / 5);
     const awakeningBonus = state.awakeningLevel >= 1 ? state.awakeningLevel : 0;
-    const spreadCount = baseSpread + awakeningBonus;
+    const spreadCount = Math.max(1, Math.round((baseSpread + awakeningBonus) * diff.corruptionSpeedMod));
     spreadCorruption(spreadCount);
 
     // Existing corruption intensifies
@@ -271,8 +323,10 @@
     // Update everything
     updateHUD();
     updateMarkerStyles();
+    updateFogOfWar();
     updateCorruptionOverlay();
     updateSanityEffects();
+    saveGame();
   }
 
   // ─── CORRUPTION SYSTEM ─────────────────────────────────────
@@ -380,24 +434,30 @@
     const port = PORTS.find(p => p.id === portId);
     if (!port) return;
 
+    const diff = getDifficulty();
+    state.sanity = diff.startSanity;
+    state.supplies = diff.startSupplies;
+
     state.currentPort = port;
     state.visitedPorts.push(portId);
 
-    // Initial corruption: 5 random ports at intensity 1
+    // Initial corruption scaled by difficulty
     const uncorrupted = PORTS.filter(p => p.id !== portId);
-    for (let i = 0; i < 5 && uncorrupted.length > 0; i++) {
+    for (let i = 0; i < diff.initialCorruption && uncorrupted.length > 0; i++) {
       const idx = Math.floor(Math.random() * uncorrupted.length);
       corruptPort(uncorrupted[idx].id, 1);
       uncorrupted.splice(idx, 1);
     }
 
     updateMarkerStyles();
+    updateFogOfWar();
     updateHUD();
     map.closePopup();
     map.flyTo([port.lat, port.lng], 5, { duration: 1.5 });
 
     setMessage(`Voyage begins at ${port.name}. The charts await.`);
     addVoyageLog(`Voyage begins at <span class="log-port-name">${port.name}</span>.`);
+    saveGame();
     showEvent(HORROR.getEvent(port, buildHorrorState()));
   }
 
@@ -420,6 +480,14 @@
     const dist = getDistance(from, port);
     const fatigue = dist > 600 ? 3 : dist > 300 ? 2 : 1;
     state.sanity = Math.max(0, state.sanity - fatigue);
+
+    // Consume supplies for travel
+    const supplyCost = dist > 600 ? 2 : 1;
+    state.supplies = Math.max(0, state.supplies - supplyCost);
+    if (state.supplies === 0) {
+      state.sanity = Math.max(0, state.sanity - 3);
+      setMessage("No supplies remain. Hunger gnaws at your crew. Sanity -3.");
+    }
 
     state.currentPort = port;
     state.visitedPorts.push(portId);
@@ -514,6 +582,123 @@
     updateSanityEffects();
   }
 
+  // ─── RESUPPLY ────────────────────────────────────────────
+  function resupply() {
+    if (state.gameOver) return;
+    map.closePopup();
+
+    const gained = 3;
+    state.supplies = Math.min(getDifficulty().startSupplies, state.supplies + gained);
+    setMessage(`Supplies restocked at ${getDisplayName(state.currentPort)}. Supplies +${gained}.`);
+    addVoyageLog(`Resupplied at <span class="log-port-name">${getDisplayName(state.currentPort)}</span>.`);
+
+    advanceTurn();
+    checkGameEnd();
+    updateHUD();
+    updateSanityEffects();
+  }
+
+  // ─── FOG OF WAR (Nightmare mode) ────────────────────────
+  function updateFogOfWar() {
+    const diff = getDifficulty();
+    if (!diff.fogOfWar) return;
+
+    // Reveal visited ports and their direct connections
+    const revealed = new Set();
+    state.visitedPorts.forEach(id => {
+      revealed.add(id);
+      getConnections(id).forEach(cid => revealed.add(cid));
+    });
+
+    PORTS.forEach(port => {
+      const marker = portMarkers[port.id];
+      const el = marker ? marker.getElement() : null;
+      if (!el) return;
+      if (revealed.has(port.id)) {
+        el.classList.remove("fog-hidden");
+      } else {
+        el.classList.add("fog-hidden");
+      }
+    });
+  }
+
+  // ─── SAVE / LOAD ──────────────────────────────────────────
+  const SAVE_KEY = "drowned_meridian_save";
+
+  function saveGame() {
+    const saveData = {
+      state: {
+        difficulty: state.difficulty,
+        turn: state.turn,
+        sanity: state.sanity,
+        supplies: state.supplies,
+        wards: state.wards,
+        reinforcedSeals: state.reinforcedSeals,
+        corruptedPorts: state.corruptedPorts,
+        visitedPorts: state.visitedPorts,
+        currentPortId: state.currentPort ? state.currentPort.id : null,
+        awakeningLevel: state.awakeningLevel,
+        loreFragments: state.loreFragments,
+        recentEvents: state.recentEvents,
+        investigatedThisTurn: state.investigatedThisTurn,
+        gameOver: state.gameOver
+      },
+      logEntries: logEntries,
+      version: 1
+    };
+    try {
+      localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
+    } catch (e) {
+      // localStorage full or unavailable — silently fail
+    }
+  }
+
+  function loadGame() {
+    try {
+      const raw = localStorage.getItem(SAVE_KEY);
+      if (!raw) return false;
+      const saveData = JSON.parse(raw);
+      if (!saveData || !saveData.state || !saveData.state.currentPortId) return false;
+
+      const s = saveData.state;
+      state.difficulty = s.difficulty || "normal";
+      state.turn = s.turn;
+      state.sanity = s.sanity;
+      state.supplies = s.supplies !== undefined ? s.supplies : 10;
+      state.wards = s.wards || 0;
+      state.reinforcedSeals = s.reinforcedSeals || [];
+      state.corruptedPorts = s.corruptedPorts || {};
+      state.visitedPorts = s.visitedPorts || [];
+      state.awakeningLevel = s.awakeningLevel || 0;
+      state.loreFragments = s.loreFragments || [];
+      state.recentEvents = s.recentEvents || [];
+      state.investigatedThisTurn = s.investigatedThisTurn || false;
+      state.gameOver = s.gameOver || false;
+
+      const port = PORTS.find(p => p.id === s.currentPortId);
+      state.currentPort = port || null;
+
+      if (saveData.logEntries) {
+        logEntries.voyage = saveData.logEntries.voyage || [];
+        logEntries.lore = saveData.logEntries.lore || [];
+        logEntries.corruption = saveData.logEntries.corruption || [];
+      }
+
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function clearSave() {
+    try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
+  }
+
+  function newVoyage() {
+    clearSave();
+    location.reload();
+  }
+
   // ─── EVENT HELPERS ─────────────────────────────────────────
   function showGlobalThenPortEvent(port) {
     const globalEvt = HORROR.getGlobalEvent(state.recentEvents);
@@ -559,14 +744,20 @@
     text.textContent = event.text;
     choices.innerHTML = "";
 
-    event.choices.forEach(choice => {
+    event.choices.forEach((choice, i) => {
       const btn = document.createElement("button");
       btn.textContent = choice.text;
+      btn.setAttribute("role", "button");
+      btn.setAttribute("aria-label", `Choice ${i + 1}: ${choice.text}`);
       btn.addEventListener("click", () => resolveChoice(choice));
       choices.appendChild(btn);
     });
 
     panel.classList.remove("hidden");
+
+    // Focus first choice for keyboard navigation
+    const firstBtn = choices.querySelector("button");
+    if (firstBtn) setTimeout(() => firstBtn.focus(), 100);
   }
 
   function hideEvent() {
@@ -592,16 +783,19 @@
         break;
 
       case "seal_reinforce": {
-        // Awakening stage 3+: seal costs increase by 5
-        const extraCost = state.awakeningLevel >= 3 ? 5 : 0;
-        const totalCost = choice.value + extraCost;
+        // Awakening stage 3+: seal costs increase by 5, plus difficulty modifier
+        const diff = getDifficulty();
+        const extraCost = (state.awakeningLevel >= 3 ? 5 : 0) + diff.sealCostMod;
+        const wardDiscount = state.wards > 0 ? 5 : 0;
+        const totalCost = Math.max(1, choice.value + extraCost - wardDiscount);
         if (state.sanity >= totalCost) {
           state.sanity -= totalCost;
           const port = state.currentPort;
           if (port && port.sealSite && !state.reinforcedSeals.includes(port.id)) {
+            if (wardDiscount > 0) state.wards--;
             state.reinforcedSeals.push(port.id);
             delete state.corruptedPorts[port.id];
-            setMessage(`The seal at ${port.name} holds. Seals reinforced: ${state.reinforcedSeals.length}/7.`);
+            setMessage(`The seal at ${port.name} holds.${wardDiscount > 0 ? " A ward crumbles to dust." : ""} Seals reinforced: ${state.reinforcedSeals.length}/7.`);
             addSealLog(`Seal reinforced at <span class="log-port-name">${port.name}</span>. (${state.reinforcedSeals.length}/7)`);
             // Drowned God retaliates
             drownedGodRetaliation();
@@ -635,6 +829,12 @@
       state.loreFragments.push(choice.bonus);
       setMessage(getMessage() + ` [Acquired: ${formatBonus(choice.bonus)}]`);
       addLoreLog(choice.bonus, state.currentPort ? state.currentPort.name : "Unknown");
+
+      // Certain lore finds grant wards
+      if (choice.bonus === "priestly_knowledge" || choice.bonus === "safehouse_cache" || choice.bonus === "warden_pact") {
+        state.wards++;
+        setMessage(getMessage() + " [+1 Ward]");
+      }
     }
 
     if (choice.effect === "sanity" && choice.value <= -10) {
@@ -696,37 +896,63 @@
     }
   }
 
+  function buildEndStats() {
+    const diff = getDifficulty();
+    const uniquePorts = [...new Set(state.visitedPorts)].length;
+    const corruptedCount = getCorruptedPortIds().length;
+    return `\n\nDifficulty: ${diff.label}\nTurns: ${state.turn}\nSanity remaining: ${state.sanity}%\nSeals reinforced: ${state.reinforcedSeals.length}/7\nPorts corrupted: ${corruptedCount}/${PORTS.length}\nUnique ports visited: ${uniquePorts}\nLore fragments: ${state.loreFragments.length}\nSupplies remaining: ${state.supplies}\nWards remaining: ${state.wards}`;
+  }
+
   function checkGameEnd() {
     if (state.sanity <= 0) {
       state.gameOver = true;
+      clearSave();
       showEvent({
         title: "LOST TO THE DEEP",
-        text: "Your mind unravels like wet rope. The charts dissolve into meaningless lines. You can no longer tell where the sea ends and the sky begins. You sit on the dock at " + (state.currentPort ? getDisplayName(state.currentPort) : "an unknown port") + " and watch the horizon eat itself. You are smiling. You do not know why.",
-        choices: [{ text: "The chart is complete.", effect: "nothing", value: 0 }]
+        text: "Your mind unravels like wet rope. The charts dissolve into meaningless lines. You can no longer tell where the sea ends and the sky begins. You sit on the dock at " + (state.currentPort ? getDisplayName(state.currentPort) : "an unknown port") + " and watch the horizon eat itself. You are smiling. You do not know why." + buildEndStats(),
+        choices: [
+          { text: "The chart is complete.", effect: "nothing", value: 0, _then: showNewVoyageButton }
+        ]
       });
       return;
     }
 
     if (state.awakeningLevel >= 4) {
       state.gameOver = true;
+      clearSave();
       showEvent({
         title: "THE DROWNED GOD WAKES",
-        text: HORROR.awakeningStages[3],
-        choices: [{ text: "The meridian breaks.", effect: "nothing", value: 0 }]
+        text: HORROR.awakeningStages[3] + buildEndStats(),
+        choices: [
+          { text: "The meridian breaks.", effect: "nothing", value: 0, _then: showNewVoyageButton }
+        ]
       });
       return;
     }
 
     if (state.reinforcedSeals.length >= 7) {
       state.gameOver = true;
-      const stats = `Turns: ${state.turn} | Sanity remaining: ${state.sanity}% | Lore fragments: ${state.loreFragments.length} | Ports visited: ${state.visitedPorts.length}`;
+      clearSave();
       showEvent({
         title: "THE MERIDIAN HOLDS",
-        text: "Seven seals. Seven anchors along the drowned meridian. Each one cost you a piece of your mind, but the line holds. The Drowned God turns in its sleep but does not wake. The charts are true — for now. You have bought the world another age of ignorance. You hope it is enough.\n\n" + stats,
-        choices: [{ text: "Fold the charts.", effect: "nothing", value: 0 }]
+        text: "Seven seals. Seven anchors along the drowned meridian. Each one cost you a piece of your mind, but the line holds. The Drowned God turns in its sleep but does not wake. The charts are true — for now. You have bought the world another age of ignorance. You hope it is enough." + buildEndStats(),
+        choices: [
+          { text: "Fold the charts.", effect: "nothing", value: 0, _then: showNewVoyageButton }
+        ]
       });
       return;
     }
+  }
+
+  function showNewVoyageButton() {
+    const panel = document.getElementById("event-panel");
+    if (panel.classList.contains("hidden")) return;
+    const choices = document.getElementById("event-choices");
+    const btn = document.createElement("button");
+    btn.className = "new-voyage-btn";
+    btn.textContent = "NEW VOYAGE";
+    btn.addEventListener("click", newVoyage);
+    choices.appendChild(btn);
   }
 
   // ─── HUD ───────────────────────────────────────────────────
@@ -734,6 +960,8 @@
     document.getElementById("sanity").textContent = state.sanity;
     document.getElementById("seals").textContent = 7 - state.reinforcedSeals.length;
     document.getElementById("turn").textContent = state.turn;
+    document.getElementById("supplies").textContent = state.supplies;
+    document.getElementById("wards").textContent = state.wards;
 
     // Awakening indicator
     const awakeEl = document.getElementById("awakening");
@@ -900,12 +1128,61 @@
 
   // ─── INTRO ─────────────────────────────────────────────────
   function initIntro() {
+    // Difficulty selection
+    const diffBtns = document.querySelectorAll(".diff-btn");
+    diffBtns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        diffBtns.forEach(b => b.classList.remove("selected"));
+        btn.classList.add("selected");
+        state.difficulty = btn.dataset.diff;
+      });
+    });
+
     document.getElementById("start-btn").addEventListener("click", () => {
       const overlay = document.getElementById("intro-overlay");
       overlay.classList.add("fade-out");
       setTimeout(() => overlay.remove(), 1200);
       setMessage("Click any port to begin your voyage.");
     });
+  }
+
+  function resumeFromSave() {
+    // Skip intro, set up map state
+    const overlay = document.getElementById("intro-overlay");
+    if (overlay) overlay.remove();
+
+    updateMarkerStyles();
+    updateFogOfWar();
+    updateHUD();
+    updateCorruptionOverlay();
+    updateSanityEffects();
+    renderLog();
+
+    if (state.currentPort) {
+      map.setView([state.currentPort.lat, state.currentPort.lng], 5);
+    }
+
+    setMessage(`Voyage resumed. Turn ${state.turn}. ${getDisplayName(state.currentPort)}.`);
+
+    if (state.gameOver) {
+      showNewVoyageButton();
+    }
+  }
+
+  // ─── ACCESSIBILITY ──────────────────────────────────────────
+  function initAccessibility() {
+    const panel = document.getElementById("event-panel");
+    panel.setAttribute("role", "dialog");
+    panel.setAttribute("aria-label", "Event");
+    panel.setAttribute("aria-live", "polite");
+
+    const hud = document.getElementById("hud");
+    hud.setAttribute("role", "status");
+    hud.setAttribute("aria-live", "polite");
+    hud.setAttribute("aria-label", "Game status");
+
+    document.getElementById("log-toggle").setAttribute("aria-label", "Open ship's log");
+    document.getElementById("log-close").setAttribute("aria-label", "Close ship's log");
   }
 
   // ─── BOOT ──────────────────────────────────────────────────
@@ -915,12 +1192,19 @@
     renderPorts();
     initLegend();
     initShipsLog();
-    initIntro();
-    updateHUD();
+    initAccessibility();
+
+    // Check for saved game
+    if (loadGame()) {
+      resumeFromSave();
+    } else {
+      initIntro();
+      updateHUD();
+    }
   }
 
   // Expose public API
-  window.GAME = { sailTo, startAt, investigate, rest, studyCharts };
+  window.GAME = { sailTo, startAt, investigate, rest, studyCharts, resupply, newVoyage };
 
   document.addEventListener("DOMContentLoaded", init);
 })();

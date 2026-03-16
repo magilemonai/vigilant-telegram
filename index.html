@@ -10,21 +10,23 @@
 <body>
   <div id="map"></div>
 
-  <div id="hud">
+  <div id="hud" role="status" aria-live="polite" aria-label="Game status">
     <div id="hud-title">THE DROWNED MERIDIAN</div>
     <div id="hud-stats">
       <span>Sanity: <span id="sanity">100</span>%</span>
       <span>Seals Intact: <span id="seals">7</span>/7</span>
       <span>Awakening: <span id="awakening">0</span>/4</span>
+      <span>Supplies: <span id="supplies">10</span></span>
+      <span>Wards: <span id="wards">0</span></span>
       <span>Turn: <span id="turn">1</span></span>
     </div>
     <div id="hud-message"></div>
   </div>
 
-  <div id="event-panel" class="hidden">
+  <div id="event-panel" class="hidden" role="dialog" aria-label="Event" aria-live="polite">
     <div id="event-title"></div>
     <div id="event-text"></div>
-    <div id="event-choices"></div>
+    <div id="event-choices" role="group" aria-label="Choices"></div>
   </div>
 
   <button id="log-toggle" title="Ship's Log">&#x1F4DC;</button>
@@ -59,6 +61,15 @@
         before the Drowned God rises.</p>
         <p>But each seal you touch erodes your mind. Each turn, the corruption spreads.
         And <em>It</em> is dreaming of you.</p>
+      </div>
+      <div id="difficulty-select">
+        <p class="diff-label">Choose your fate:</p>
+        <div class="diff-options">
+          <button class="diff-btn" data-diff="easy">FAIR WINDS<span class="diff-desc">120 Sanity, slow corruption</span></button>
+          <button class="diff-btn selected" data-diff="normal">CHARTED WATERS<span class="diff-desc">100 Sanity, standard peril</span></button>
+          <button class="diff-btn" data-diff="hard">STORM SEASON<span class="diff-desc">80 Sanity, swift corruption</span></button>
+          <button class="diff-btn" data-diff="nightmare">BLIND MERIDIAN<span class="diff-desc">70 Sanity, fog of war</span></button>
+        </div>
       </div>
       <button id="start-btn">UNFOLD THE CHART</button>
     </div>
