@@ -218,6 +218,28 @@ body {
   animation: pulse-corrupt 2s ease-in-out infinite;
 }
 
+.port-marker.corrupted-2 {
+  border-color: rgba(180, 30, 60, 0.8);
+  background: rgba(60, 8, 20, 0.9);
+  color: #dd3344;
+  border-width: 2.5px;
+  animation: pulse-corrupt 1.5s ease-in-out infinite;
+}
+
+.port-marker.corrupted-3 {
+  border-color: rgba(200, 10, 40, 0.9);
+  background: rgba(80, 5, 15, 0.95);
+  color: #ff2233;
+  border-width: 3px;
+  animation: pulse-corrupt-deep 1s ease-in-out infinite;
+  box-shadow: 0 0 8px rgba(200, 10, 40, 0.4);
+}
+
+@keyframes pulse-corrupt-deep {
+  0%, 100% { box-shadow: 0 0 8px rgba(200, 10, 40, 0.4); }
+  50% { box-shadow: 0 0 24px rgba(200, 10, 40, 0.8); }
+}
+
 .port-marker.sealed {
   border-color: rgba(80, 160, 120, 0.6);
   background: rgba(10, 30, 20, 0.85);
@@ -292,6 +314,10 @@ body {
 
 .popup-btn:hover {
   background: rgba(139, 115, 85, 0.3);
+}
+
+.popup-btn + .popup-btn {
+  margin-left: 4px;
 }
 
 /* Corruption visual overlay */

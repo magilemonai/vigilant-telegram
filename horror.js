@@ -176,6 +176,7 @@ const HORROR = {
   getEvent(port, gameState) {
     let pool;
     const recent = gameState.recentEvents || [];
+    const awakening = gameState.awakeningLevel || 0;
 
     if (port.sealSite && !gameState.reinforcedSeals.includes(port.id)) {
       // 60% chance of seal event at unreinforced seal sites
@@ -183,8 +184,10 @@ const HORROR = {
     } else if (gameState.corruptedPorts.includes(port.id)) {
       pool = this.corruptionEvents;
     } else {
-      // Safe ports: 70% safe event, 30% corruption creeping in
-      pool = Math.random() < 0.7 ? this.safeEvents : this.corruptionEvents;
+      // Safe ports: safe event chance decreases with awakening level
+      // Stage 0: 70%, Stage 1: 60%, Stage 2: 50%, Stage 3: 35%
+      const safeChance = Math.max(0.35, 0.7 - awakening * 0.12);
+      pool = Math.random() < safeChance ? this.safeEvents : this.corruptionEvents;
     }
 
     const event = this._pickAvoidingRepeats(pool, recent);
@@ -204,7 +207,7 @@ const HORROR = {
   },
 
   /**
-   * Spread corruption to adjacent ports
+   * Spread corruption to adjacent ports (graph-based via SEA_ROUTES)
    */
   spreadCorruption(ports, corruptedPorts, count) {
     const uncorrupted = ports.filter(p => !corruptedPorts.includes(p.id));
@@ -212,15 +215,23 @@ const HORROR = {
 
     const newCorruptions = [];
     for (let i = 0; i < count && uncorrupted.length > 0; i++) {
-      // Prefer ports near already-corrupted ones
+      // Prefer ports connected via sea routes to already-corrupted ones
       let candidates = uncorrupted.filter(p => {
-        return corruptedPorts.some(cid => {
-          const cp = ports.find(pp => pp.id === cid);
-          if (!cp) return false;
-          const dist = Math.sqrt(Math.pow(p.lat - cp.lat, 2) + Math.pow(p.lng - cp.lng, 2));
-          return dist < 15; // ~15 degrees proximity
-        });
+        const conns = (typeof SEA_ROUTES !== "undefined" && SEA_ROUTES[p.id]) || [];
+        return conns.some(cid => corruptedPorts.includes(cid));
       });
+
+      // Fallback to proximity if no graph connections found
+      if (candidates.length === 0) {
+        candidates = uncorrupted.filter(p => {
+          return corruptedPorts.some(cid => {
+            const cp = ports.find(pp => pp.id === cid);
+            if (!cp) return false;
+            const dist = Math.sqrt(Math.pow(p.lat - cp.lat, 2) + Math.pow(p.lng - cp.lng, 2));
+            return dist < 15;
+          });
+        });
+      }
 
       if (candidates.length === 0) candidates = uncorrupted;
 

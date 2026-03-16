@@ -585,6 +585,169 @@ const PORTS = [
   }
 ];
 
+/**
+ * SEA ROUTES — Navigable connections between ports.
+ * No routes through landmass. All edges follow real sea lanes.
+ *
+ * Chokepoints (strategically critical):
+ *   - Gibraltar corridor: lisbon ↔ casablanca ↔ barcelona (Atlantic ↔ Med)
+ *   - Suez corridor: alexandria → jeddah (Med ↔ Red Sea)
+ *   - Bab el-Mandeb: aden ↔ djibouti (Red Sea ↔ Indian Ocean)
+ *   - Bosporus: istanbul (Med ↔ Black Sea)
+ *   - English Channel: london ↔ le_havre ↔ amsterdam (North Sea ↔ Atlantic)
+ *   - Cape of Good Hope: cape_town (Atlantic ↔ Indian Ocean)
+ */
+const SEA_ROUTES = {
+  // ─── NORTHERN EUROPE (Baltic & North Sea) ──────────────────
+  reykjavik:      ["bergen", "edinburgh"],
+  bergen:         ["reykjavik", "oslo", "edinburgh", "hamburg"],
+  oslo:           ["bergen", "copenhagen", "stockholm"],
+  stockholm:      ["oslo", "helsinki", "copenhagen"],
+  helsinki:       ["stockholm", "st_petersburg"],
+  st_petersburg:  ["helsinki"],
+  copenhagen:     ["oslo", "stockholm", "hamburg", "edinburgh"],
+  edinburgh:      ["reykjavik", "bergen", "copenhagen", "london"],
+
+  // ─── WESTERN EUROPE (Atlantic & Channel) ───────────────────
+  london:         ["edinburgh", "le_havre", "amsterdam", "rotterdam", "antwerp"],
+  amsterdam:      ["london", "rotterdam", "hamburg"],
+  rotterdam:      ["london", "amsterdam", "antwerp"],
+  hamburg:        ["amsterdam", "copenhagen", "bergen", "antwerp"],
+  antwerp:        ["london", "rotterdam", "hamburg", "le_havre"],
+  le_havre:       ["london", "antwerp", "brest"],
+  brest:          ["le_havre", "bilbao", "lisbon"],
+  bilbao:         ["brest", "lisbon", "barcelona"],
+  lisbon:         ["brest", "bilbao", "casablanca", "dakar"],  // CHOKEPOINT: Atlantic ↔ Med via casablanca
+
+  // ─── MEDITERRANEAN (Western) ───────────────────────────────
+  barcelona:      ["bilbao", "marseille", "algiers", "valletta"],
+  marseille:      ["barcelona", "genoa"],
+  genoa:          ["marseille", "naples", "venice"],
+  venice:         ["genoa", "dubrovnik"],
+  naples:         ["genoa", "valletta", "tunis", "dubrovnik"],
+  valletta:       ["barcelona", "naples", "tunis", "algiers", "alexandria"],
+  dubrovnik:      ["venice", "naples", "piraeus"],
+
+  // ─── MEDITERRANEAN (Eastern & Southern) ────────────────────
+  piraeus:        ["dubrovnik", "istanbul", "alexandria", "beirut", "valletta"],
+  algiers:        ["barcelona", "valletta", "tunis", "casablanca"],
+  tunis:          ["naples", "valletta", "algiers"],
+  alexandria:     ["valletta", "piraeus", "beirut", "haifa", "jeddah"],  // CHOKEPOINT: Med ↔ Red Sea via jeddah
+
+  // ─── BLACK SEA (through Bosporus only) ─────────────────────
+  istanbul:       ["piraeus", "constanta", "odesa", "batumi"],  // CHOKEPOINT: Bosporus
+  odesa:          ["istanbul", "constanta"],
+  constanta:      ["istanbul", "odesa", "batumi"],
+  batumi:         ["istanbul", "constanta"],
+
+  // ─── MIDDLE EAST (Eastern Med + Red Sea + Gulf) ────────────
+  beirut:         ["piraeus", "alexandria", "haifa"],
+  haifa:          ["alexandria", "beirut", "jeddah"],
+  jeddah:         ["alexandria", "haifa", "aden"],               // CHOKEPOINT: Red Sea
+  aden:           ["jeddah", "djibouti", "muscat", "mogadishu"], // CHOKEPOINT: Bab el-Mandeb
+  dubai:          ["muscat"],
+  muscat:         ["aden", "dubai", "mombasa"],                  // Arabian Sea → Indian Ocean
+
+  // ─── EAST AFRICA (Indian Ocean coast, south) ───────────────
+  djibouti:       ["aden", "mogadishu"],                         // CHOKEPOINT: Bab el-Mandeb
+  mogadishu:      ["aden", "djibouti", "mombasa"],
+  mombasa:        ["mogadishu", "muscat", "dar_es_salaam", "zanzibar"],
+  dar_es_salaam:  ["mombasa", "zanzibar", "maputo", "port_louis"],
+  zanzibar:       ["mombasa", "dar_es_salaam"],
+  maputo:         ["dar_es_salaam", "durban"],
+
+  // ─── SOUTHERN AFRICA (around the Cape) ─────────────────────
+  durban:         ["maputo", "cape_town", "port_louis"],
+  cape_town:      ["durban", "walvis_bay"],                      // CHOKEPOINT: Cape of Good Hope
+  walvis_bay:     ["cape_town", "luanda"],
+  port_louis:     ["dar_es_salaam", "durban"],                   // Mauritius — Indian Ocean hub
+
+  // ─── WEST AFRICA (Atlantic coast, north to south) ──────────
+  casablanca:     ["lisbon", "algiers", "dakar"],                // CHOKEPOINT: Gibraltar corridor
+  dakar:          ["lisbon", "casablanca", "abidjan"],
+  abidjan:        ["dakar", "accra"],
+  accra:          ["abidjan", "lagos"],
+  lagos:          ["accra", "douala"],
+  douala:         ["lagos", "luanda"],
+
+  // ─── SOUTHERN AFRICA (Atlantic coast) ──────────────────────
+  luanda:         ["douala", "walvis_bay"]
+};
+
+/**
+ * Chokepoint ports — strategically critical, corruption target priority
+ */
+const CHOKEPOINTS = ["istanbul", "alexandria", "aden", "djibouti", "casablanca", "cape_town", "lisbon", "london"];
+
+/**
+ * Travel events — random encounters during sea voyages
+ */
+const TRAVEL_EVENTS = [
+  {
+    title: "Dead Calm",
+    text: "The wind dies. The sea becomes a mirror. In the perfect stillness, you hear something breathing beneath the hull — vast, slow, patient.",
+    choices: [
+      { text: "Wait in silence", effect: "sanity", value: -3 },
+      { text: "Start the engine and push through", effect: "nothing", value: 0 }
+    ]
+  },
+  {
+    title: "The Ghost Light",
+    text: "A light appears on the horizon — not a lighthouse, not a ship. It pulses with the rhythm of a heartbeat and seems to be keeping pace with you.",
+    choices: [
+      { text: "Sail toward it", effect: "sanity", value: -8, bonus: "ghost_light" },
+      { text: "Change course away", effect: "sanity", value: -2 }
+    ]
+  },
+  {
+    title: "Flotsam",
+    text: "You pass through a debris field — splintered wood, torn canvas, a ship's wheel still spinning slowly. The wreckage is fresh. There was no storm.",
+    choices: [
+      { text: "Search the wreckage", effect: "sanity", value: -5, bonus: "wreck_log" },
+      { text: "Sail through quickly", effect: "nothing", value: 0 }
+    ]
+  },
+  {
+    title: "The Other Ship",
+    text: "A vessel appears off your port bow, matching your heading exactly. Its crew stands at the rail, motionless. Through binoculars, you see they are all looking at you. They are all smiling.",
+    choices: [
+      { text: "Signal them", effect: "sanity", value: -10, bonus: "phantom_signal" },
+      { text: "Full speed ahead", effect: "sanity", value: -3 }
+    ]
+  },
+  {
+    title: "Smooth Passage",
+    text: "Fair winds and following seas. The charts are true, the stars are right, and for a few blessed hours the world makes sense.",
+    choices: [
+      { text: "Enjoy the peace (+3 Sanity)", effect: "sanity", value: 3 }
+    ]
+  },
+  {
+    title: "The Depth Below",
+    text: "Your depth sounder spikes — then drops to zero — then shows a reading so deep it exceeds the instrument's range. The water beneath you is darker than it should be.",
+    choices: [
+      { text: "Note the coordinates", effect: "sanity", value: -4, bonus: "depth_anomaly" },
+      { text: "Don't look down", effect: "sanity", value: -1 }
+    ]
+  },
+  {
+    title: "Singing on the Wind",
+    text: "A melody carries across the water — no words, no language, just a tone that makes your fillings ache and your compass needle tremble.",
+    choices: [
+      { text: "Transcribe the melody", effect: "sanity", value: -7, bonus: "sea_hymn" },
+      { text: "Plug your ears and steer", effect: "sanity", value: -2 }
+    ]
+  },
+  {
+    title: "Storm Warning",
+    text: "The barometer drops. The sky turns the color of a bruise. But the storm doesn't break — it hangs overhead, watching, as if deciding whether you're worth the effort.",
+    choices: [
+      { text: "Ride it out", effect: "sanity", value: -4 },
+      { text: "Pray to whatever's listening", effect: "sanity", value: -6, bonus: "storm_prayer" }
+    ]
+  }
+];
+
 // Regions and their thematic colors
 const REGION_COLORS = {
   "Northern Europe": "#6699cc",
