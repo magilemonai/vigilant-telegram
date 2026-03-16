@@ -29,6 +29,13 @@
   let routeLines = [];
   let corruptionOverlay;
 
+  // Ship's log entries
+  const logEntries = {
+    voyage: [],
+    lore: [],
+    corruption: []
+  };
+
   // ─── HELPERS ────────────────────────────────────────────────
   function isCorrupted(portId) {
     return portId in state.corruptedPorts;
@@ -297,6 +304,7 @@
     if (newCorruptions.length > 0) {
       const names = newCorruptions.map(id => PORTS.find(p => p.id === id)?.name).filter(Boolean);
       setMessage(`Corruption spreads to: ${names.join(", ")}`);
+      addCorruptionLog(`Corruption spreads to: ${names.join(", ")}.`);
     }
   }
 
@@ -389,6 +397,7 @@
     map.flyTo([port.lat, port.lng], 5, { duration: 1.5 });
 
     setMessage(`Voyage begins at ${port.name}. The charts await.`);
+    addVoyageLog(`Voyage begins at <span class="log-port-name">${port.name}</span>.`);
     showEvent(HORROR.getEvent(port, buildHorrorState()));
   }
 
@@ -414,6 +423,8 @@
 
     state.currentPort = port;
     state.visitedPorts.push(portId);
+
+    addVoyageLog(`Sailed from <span class="log-port-name">${from.name}</span> to <span class="log-port-name">${port.name}</span> (~${dist} leagues).`);
 
     map.closePopup();
     map.flyTo([port.lat, port.lng], 5, { duration: 1.5 });
@@ -529,7 +540,8 @@
       reinforcedSeals: state.reinforcedSeals,
       corruptedPorts: getCorruptedPortIds(),
       recentEvents: state.recentEvents,
-      awakeningLevel: state.awakeningLevel
+      awakeningLevel: state.awakeningLevel,
+      loreFragments: state.loreFragments
     };
   }
 
@@ -590,6 +602,7 @@
             state.reinforcedSeals.push(port.id);
             delete state.corruptedPorts[port.id];
             setMessage(`The seal at ${port.name} holds. Seals reinforced: ${state.reinforcedSeals.length}/7.`);
+            addSealLog(`Seal reinforced at <span class="log-port-name">${port.name}</span>. (${state.reinforcedSeals.length}/7)`);
             // Drowned God retaliates
             drownedGodRetaliation();
           }
@@ -621,6 +634,7 @@
     if (choice.bonus) {
       state.loreFragments.push(choice.bonus);
       setMessage(getMessage() + ` [Acquired: ${formatBonus(choice.bonus)}]`);
+      addLoreLog(choice.bonus, state.currentPort ? state.currentPort.name : "Unknown");
     }
 
     if (choice.effect === "sanity" && choice.value <= -10) {
@@ -778,6 +792,93 @@
     }
   }
 
+  // ─── SHIP'S LOG ──────────────────────────────────────────
+  function addLogEntry(type, text, cssClass) {
+    const entry = { turn: state.turn, text, cssClass: cssClass || "" };
+    logEntries[type].push(entry);
+    renderLog();
+  }
+
+  function addVoyageLog(text) {
+    addLogEntry("voyage", text);
+  }
+
+  function addCorruptionLog(text) {
+    addLogEntry("corruption", text, "log-corruption-entry");
+  }
+
+  function addSealLog(text) {
+    addLogEntry("voyage", text, "log-seal-entry");
+  }
+
+  function addLoreLog(bonusName, portName) {
+    logEntries.lore.push({
+      name: formatBonus(bonusName),
+      port: portName,
+      turn: state.turn
+    });
+    renderLog();
+  }
+
+  function renderLog() {
+    const voyageEl = document.getElementById("log-voyage");
+    const loreEl = document.getElementById("log-lore");
+    const corruptionEl = document.getElementById("log-corruption");
+    if (!voyageEl) return;
+
+    if (logEntries.voyage.length === 0) {
+      voyageEl.innerHTML = '<div class="log-empty">No entries yet. Begin your voyage.</div>';
+    } else {
+      voyageEl.innerHTML = logEntries.voyage.slice().reverse().map(e =>
+        `<div class="log-entry ${e.cssClass}"><div class="log-turn">TURN ${e.turn}</div>${e.text}</div>`
+      ).join("");
+    }
+
+    if (logEntries.lore.length === 0) {
+      loreEl.innerHTML = '<div class="log-empty">No lore fragments collected.</div>';
+    } else {
+      loreEl.innerHTML = logEntries.lore.slice().reverse().map(e =>
+        `<div class="log-lore-item"><div class="lore-name">${e.name}</div><div class="lore-port">Collected at ${e.port} — Turn ${e.turn}</div></div>`
+      ).join("");
+    }
+
+    if (logEntries.corruption.length === 0) {
+      corruptionEl.innerHTML = '<div class="log-empty">No corruption events recorded.</div>';
+    } else {
+      corruptionEl.innerHTML = logEntries.corruption.slice().reverse().map(e =>
+        `<div class="log-entry ${e.cssClass}"><div class="log-turn">TURN ${e.turn}</div>${e.text}</div>`
+      ).join("");
+    }
+  }
+
+  function initShipsLog() {
+    const toggle = document.getElementById("log-toggle");
+    const log = document.getElementById("ships-log");
+    const close = document.getElementById("log-close");
+    const tabs = document.querySelectorAll(".log-tab");
+
+    if (!toggle || !log) return;
+
+    toggle.addEventListener("click", () => {
+      log.classList.toggle("hidden");
+    });
+
+    close.addEventListener("click", () => {
+      log.classList.add("hidden");
+    });
+
+    tabs.forEach(tab => {
+      tab.addEventListener("click", () => {
+        tabs.forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+        document.querySelectorAll(".log-section").forEach(s => s.classList.remove("active"));
+        document.getElementById("log-" + tab.dataset.tab).classList.add("active");
+      });
+    });
+
+    renderLog();
+  }
+
   // ─── MAP LEGEND ───────────────────────────────────────────
   function initLegend() {
     const legend = L.control({ position: "bottomleft" });
@@ -813,6 +914,7 @@
     renderConnections();
     renderPorts();
     initLegend();
+    initShipsLog();
     initIntro();
     updateHUD();
   }

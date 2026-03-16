@@ -27,6 +27,24 @@
     <div id="event-choices"></div>
   </div>
 
+  <button id="log-toggle" title="Ship's Log">&#x1F4DC;</button>
+  <div id="ships-log" class="hidden">
+    <div id="log-header">
+      <span id="log-title">SHIP'S LOG</span>
+      <button id="log-close">&times;</button>
+    </div>
+    <div id="log-tabs">
+      <button class="log-tab active" data-tab="voyage">Voyage</button>
+      <button class="log-tab" data-tab="lore">Lore</button>
+      <button class="log-tab" data-tab="corruption">Corruption</button>
+    </div>
+    <div id="log-content">
+      <div id="log-voyage" class="log-section active"></div>
+      <div id="log-lore" class="log-section"></div>
+      <div id="log-corruption" class="log-section"></div>
+    </div>
+  </div>
+
   <div id="intro-overlay">
     <div id="intro-content">
       <h1>THE DROWNED MERIDIAN</h1>

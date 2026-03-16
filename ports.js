@@ -302,7 +302,69 @@ const PORTS = [
     sealSite: true
   },
 
+  // ─── MEDITERRANEAN (additional) ────────────────────────────
+  {
+    id: "tangier",
+    name: "Tangier",
+    corruptedName: "Tan'ghier",
+    country: "Morocco",
+    lat: 35.78, lng: -5.81,
+    region: "Mediterranean",
+    desc: "A gateway between continents, where the Mediterranean meets the Atlantic at the Strait of Gibraltar.",
+    lore: "The Caves of Hercules face the sea. At low tide, the cave mouth forms the shape of Africa — or, depending on the light, the shape of something opening."
+  },
+  {
+    id: "split",
+    name: "Split",
+    corruptedName: "Spl'iht",
+    country: "Croatia",
+    lat: 43.51, lng: 16.44,
+    region: "Mediterranean",
+    desc: "A city built within the walls of Diocletian's Palace, where Roman stones meet Adriatic light.",
+    lore: "Diocletian retired here to grow cabbages. The palace's substructures remain partially flooded. The water level rises and falls independent of the tide."
+  },
+  {
+    id: "tripoli_lebanon",
+    name: "Tripoli",
+    corruptedName: "Trip'holi",
+    country: "Lebanon",
+    lat: 34.44, lng: 35.84,
+    region: "Mediterranean",
+    desc: "A Crusader-era port city on Lebanon's northern coast, layered with Phoenician memory.",
+    lore: "The Crusader castle of Saint-Gilles overlooks a harbor where Phoenician ships once launched. The harbor floor is paved with stones that no one laid."
+  },
+
   // ─── EASTERN EUROPE / BLACK SEA ─────────────────────────────
+  {
+    id: "sevastopol",
+    name: "Sevastopol",
+    corruptedName: "Sevast'ophol",
+    country: "Ukraine",
+    lat: 44.62, lng: 33.53,
+    region: "Black Sea",
+    desc: "A fortress-port on the Crimean peninsula, scarred by sieges ancient and modern.",
+    lore: "The ruins of Chersonesus sit on the cliffs above. Greek colonists built a temple here to ward off something from the deep. The temple's foundation stones face inward, not outward."
+  },
+  {
+    id: "trabzon",
+    name: "Trabzon",
+    corruptedName: "Trab'zhon",
+    country: "Turkey",
+    lat: 41.00, lng: 39.72,
+    region: "Black Sea",
+    desc: "An ancient trading post on the southeastern Black Sea, where the Silk Road met the waves.",
+    lore: "Xenophon's Ten Thousand reached the sea here and cried 'Thalassa!' But Xenophon's private journal — held by the Meridian Society — records that the sea cried back."
+  },
+  {
+    id: "varna",
+    name: "Varna",
+    corruptedName: "Var'nha",
+    country: "Bulgaria",
+    lat: 43.20, lng: 27.91,
+    region: "Black Sea",
+    desc: "Bulgaria's maritime capital, home to the oldest processed gold in the world.",
+    lore: "The Varna Necropolis gold dates to 4600 BC. The craftsmanship exceeds anything possible with contemporary tools. The burial masks depict faces that are not quite human."
+  },
   {
     id: "odesa",
     name: "Odesa",
@@ -346,6 +408,36 @@ const PORTS = [
   },
 
   // ─── MIDDLE EAST ────────────────────────────────────────────
+  {
+    id: "doha",
+    name: "Doha",
+    corruptedName: "Doh'ha",
+    country: "Qatar",
+    lat: 25.29, lng: 51.53,
+    region: "Middle East",
+    desc: "A pearl-diving port turned ultramodern capital on the Persian Gulf.",
+    lore: "The Pearl-Qatar is built on reclaimed land. During construction, dredgers broke through a layer of compacted shells that should not exist at that depth. The shells were warm."
+  },
+  {
+    id: "kuwait_city",
+    name: "Kuwait City",
+    corruptedName: "Kuw'ait",
+    country: "Kuwait",
+    lat: 29.38, lng: 47.99,
+    region: "Middle East",
+    desc: "An oil-wealth port at the head of the Persian Gulf, where desert meets shallow waters.",
+    lore: "Failaka Island, offshore, was sacred to the Greeks who called it Ikaros. The temples there face neither east nor west but toward a point in the Gulf that sonar cannot reach."
+  },
+  {
+    id: "bandar_abbas",
+    name: "Bandar Abbas",
+    corruptedName: "Band'ar Abb'has",
+    country: "Iran",
+    lat: 27.19, lng: 56.27,
+    region: "Middle East",
+    desc: "Iran's principal port on the Strait of Hormuz, where the Gulf narrows to a bottleneck.",
+    lore: "The Strait of Hormuz carries a third of the world's seaborne oil. Local fishermen report that on windless nights, the strait breathes — a rhythmic current with no meteorological explanation."
+  },
   {
     id: "beirut",
     name: "Beirut",
@@ -408,6 +500,36 @@ const PORTS = [
   },
 
   // ─── EAST AFRICA ────────────────────────────────────────────
+  {
+    id: "port_sudan",
+    name: "Port Sudan",
+    corruptedName: "Port Sud'han",
+    country: "Sudan",
+    lat: 19.62, lng: 37.22,
+    region: "East Africa",
+    desc: "Sudan's only major seaport, baking on the Red Sea coast amid coral reefs.",
+    lore: "The reefs off Port Sudan are among the oldest living structures on Earth. Divers report that the deepest coral formations grow in patterns that resemble circuit boards."
+  },
+  {
+    id: "lamu",
+    name: "Lamu",
+    corruptedName: "Lam'hu",
+    country: "Kenya",
+    lat: -2.27, lng: 40.90,
+    region: "East Africa",
+    desc: "A Swahili trading island virtually unchanged since the 14th century, adrift in mangroves.",
+    lore: "Lamu's oldest mosque contains a qibla wall that doesn't face Mecca. It faces the seafloor trench 200 kilometers offshore. The imam says this is by design."
+  },
+  {
+    id: "beira",
+    name: "Beira",
+    corruptedName: "Bei'rha",
+    country: "Mozambique",
+    lat: -19.84, lng: 34.87,
+    region: "East Africa",
+    desc: "A cyclone-battered port on the Mozambique Channel, gateway to landlocked nations.",
+    lore: "Cyclone Idai devastated Beira in 2019. In the flood waters, residents reported seeing structures revealed beneath the mud — stone foundations in geometric patterns that predate any known civilization in the region."
+  },
   {
     id: "djibouti",
     name: "Djibouti",
@@ -534,6 +656,26 @@ const PORTS = [
 
   // ─── SOUTHERN AFRICA ────────────────────────────────────────
   {
+    id: "toamasina",
+    name: "Toamasina",
+    corruptedName: "Toamas'ihna",
+    country: "Madagascar",
+    lat: -18.15, lng: 49.40,
+    region: "Southern Africa",
+    desc: "Madagascar's chief port, where lemur forests meet the Indian Ocean.",
+    lore: "Madagascar split from India 88 million years ago. The rift valley that separated them runs deeper than any geological model predicts. It is still widening — but not from tectonic forces."
+  },
+  {
+    id: "lobito",
+    name: "Lobito",
+    corruptedName: "Lob'itho",
+    country: "Angola",
+    lat: -12.35, lng: 13.55,
+    region: "Southern Africa",
+    desc: "A deep-water port on a natural sandbar peninsula, gateway to Angola's interior.",
+    lore: "The Lobito Corridor railway runs from the Atlantic to the heart of Africa. Train drivers on the night run report a station that appears between two known stops. It is always empty. It is always lit."
+  },
+  {
     id: "luanda",
     name: "Luanda",
     corruptedName: "Lu'andha",
@@ -620,50 +762,64 @@ const SEA_ROUTES = {
   lisbon:         ["brest", "bilbao", "casablanca", "dakar"],  // CHOKEPOINT: Atlantic ↔ Med via casablanca
 
   // ─── MEDITERRANEAN (Western) ───────────────────────────────
-  barcelona:      ["bilbao", "marseille", "algiers", "valletta"],
+  barcelona:      ["bilbao", "marseille", "tangier", "algiers", "valletta"],
   marseille:      ["barcelona", "genoa"],
   genoa:          ["marseille", "naples", "venice"],
-  venice:         ["genoa", "dubrovnik"],
+  venice:         ["genoa", "split", "dubrovnik"],
+  split:          ["venice", "dubrovnik"],                              // Adriatic
   naples:         ["genoa", "valletta", "tunis", "dubrovnik"],
-  valletta:       ["barcelona", "naples", "tunis", "algiers", "alexandria"],
-  dubrovnik:      ["venice", "naples", "piraeus"],
+  valletta:       ["barcelona", "naples", "tunis", "algiers", "piraeus", "alexandria"],
+  dubrovnik:      ["venice", "split", "naples", "piraeus"],
+  tangier:        ["casablanca", "algiers", "barcelona"],               // Strait of Gibraltar
 
   // ─── MEDITERRANEAN (Eastern & Southern) ────────────────────
   piraeus:        ["dubrovnik", "istanbul", "alexandria", "beirut", "valletta"],
-  algiers:        ["barcelona", "valletta", "tunis", "casablanca"],
+  algiers:        ["tangier", "barcelona", "valletta", "tunis", "casablanca"],
   tunis:          ["naples", "valletta", "algiers"],
+  tripoli_lebanon: ["beirut", "haifa"],                                 // Lebanese coast
   alexandria:     ["valletta", "piraeus", "beirut", "haifa", "jeddah"],  // CHOKEPOINT: Med ↔ Red Sea via jeddah
 
   // ─── BLACK SEA (through Bosporus only) ─────────────────────
-  istanbul:       ["piraeus", "constanta", "odesa", "batumi"],  // CHOKEPOINT: Bosporus
-  odesa:          ["istanbul", "constanta"],
-  constanta:      ["istanbul", "odesa", "batumi"],
-  batumi:         ["istanbul", "constanta"],
+  istanbul:       ["piraeus", "varna", "constanta", "odesa", "trabzon", "batumi"],  // CHOKEPOINT: Bosporus
+  varna:          ["istanbul", "constanta", "sevastopol"],
+  sevastopol:     ["varna", "odesa", "constanta"],
+  odesa:          ["istanbul", "sevastopol", "constanta"],
+  constanta:      ["istanbul", "varna", "sevastopol", "odesa", "batumi"],
+  batumi:         ["istanbul", "trabzon", "constanta"],
+  trabzon:        ["batumi", "istanbul"],
 
   // ─── MIDDLE EAST (Eastern Med + Red Sea + Gulf) ────────────
-  beirut:         ["piraeus", "alexandria", "haifa"],
-  haifa:          ["alexandria", "beirut", "jeddah"],
-  jeddah:         ["alexandria", "haifa", "aden"],               // CHOKEPOINT: Red Sea
+  beirut:         ["piraeus", "tripoli_lebanon", "alexandria", "haifa"],
+  haifa:          ["alexandria", "beirut", "tripoli_lebanon", "jeddah"],
+  jeddah:         ["alexandria", "haifa", "port_sudan", "aden"],  // CHOKEPOINT: Red Sea
   aden:           ["jeddah", "djibouti", "muscat", "mogadishu"], // CHOKEPOINT: Bab el-Mandeb
-  dubai:          ["muscat"],
-  muscat:         ["aden", "dubai", "mombasa"],                  // Arabian Sea → Indian Ocean
+  dubai:          ["muscat", "doha", "bandar_abbas"],
+  doha:           ["dubai", "kuwait_city", "bandar_abbas"],
+  kuwait_city:    ["doha", "bandar_abbas"],
+  bandar_abbas:   ["dubai", "doha", "kuwait_city", "muscat"],    // Strait of Hormuz
+  muscat:         ["aden", "dubai", "bandar_abbas", "mombasa"],   // Arabian Sea → Indian Ocean
 
   // ─── EAST AFRICA (Indian Ocean coast, south) ───────────────
-  djibouti:       ["aden", "mogadishu"],                         // CHOKEPOINT: Bab el-Mandeb
-  mogadishu:      ["aden", "djibouti", "mombasa"],
-  mombasa:        ["mogadishu", "muscat", "dar_es_salaam", "zanzibar"],
-  dar_es_salaam:  ["mombasa", "zanzibar", "maputo", "port_louis"],
+  port_sudan:     ["jeddah", "djibouti"],                        // Red Sea coast
+  djibouti:       ["aden", "port_sudan", "mogadishu"],           // CHOKEPOINT: Bab el-Mandeb
+  mogadishu:      ["aden", "djibouti", "lamu", "mombasa"],
+  lamu:           ["mogadishu", "mombasa"],                      // Swahili coast
+  mombasa:        ["mogadishu", "lamu", "muscat", "dar_es_salaam", "zanzibar"],
+  dar_es_salaam:  ["mombasa", "zanzibar", "beira", "maputo", "port_louis"],
   zanzibar:       ["mombasa", "dar_es_salaam"],
-  maputo:         ["dar_es_salaam", "durban"],
+  beira:          ["dar_es_salaam", "maputo", "toamasina"],       // Mozambique Channel
+  maputo:         ["beira", "dar_es_salaam", "durban"],
 
   // ─── SOUTHERN AFRICA (around the Cape) ─────────────────────
   durban:         ["maputo", "cape_town", "port_louis"],
   cape_town:      ["durban", "walvis_bay"],                      // CHOKEPOINT: Cape of Good Hope
-  walvis_bay:     ["cape_town", "luanda"],
-  port_louis:     ["dar_es_salaam", "durban"],                   // Mauritius — Indian Ocean hub
+  walvis_bay:     ["cape_town", "lobito", "luanda"],
+  lobito:         ["walvis_bay", "luanda"],                      // Angolan coast
+  port_louis:     ["dar_es_salaam", "durban", "toamasina"],      // Indian Ocean hub
+  toamasina:      ["port_louis", "beira"],                        // Madagascar
 
   // ─── WEST AFRICA (Atlantic coast, north to south) ──────────
-  casablanca:     ["lisbon", "algiers", "dakar"],                // CHOKEPOINT: Gibraltar corridor
+  casablanca:     ["lisbon", "tangier", "algiers", "dakar"],     // CHOKEPOINT: Gibraltar corridor
   dakar:          ["lisbon", "casablanca", "abidjan"],
   abidjan:        ["dakar", "accra"],
   accra:          ["abidjan", "lagos"],
@@ -671,13 +827,13 @@ const SEA_ROUTES = {
   douala:         ["lagos", "luanda"],
 
   // ─── SOUTHERN AFRICA (Atlantic coast) ──────────────────────
-  luanda:         ["douala", "walvis_bay"]
+  luanda:         ["douala", "lobito", "walvis_bay"]
 };
 
 /**
  * Chokepoint ports — strategically critical, corruption target priority
  */
-const CHOKEPOINTS = ["istanbul", "alexandria", "aden", "djibouti", "casablanca", "cape_town", "lisbon", "london"];
+const CHOKEPOINTS = ["istanbul", "alexandria", "aden", "djibouti", "casablanca", "cape_town", "lisbon", "london", "tangier", "bandar_abbas"];
 
 /**
  * Travel events — random encounters during sea voyages
