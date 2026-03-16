@@ -1,8 +1,8 @@
 /**
- * Game Engine — The Drowned Meridian (Phase 4)
+ * Game Engine — The Drowned Meridian (Phase 5)
  *
- * Difficulty modes, resources (supplies/wards), save/load,
- * enhanced stats screens, accessibility.
+ * Audio system, advanced corruption visuals, animated travel,
+ * mobile-responsive, difficulty, resources, save/load.
  */
 
 (function () {
@@ -282,14 +282,19 @@
   function drawRoute(from, to) {
     const line = L.polyline(
       [[from.lat, from.lng], [to.lat, to.lng]],
-      { color: "rgba(196,163,90,0.5)", dashArray: "6 4", weight: 1.5 }
+      { color: "rgba(196,163,90,0.6)", dashArray: "12 6", weight: 2, className: "travel-path-animated" }
     ).addTo(map);
     routeLines.push(line);
 
+    // Stop animation on older lines and fade them
     routeLines.forEach((rl, i) => {
       const age = routeLines.length - 1 - i;
+      if (age > 0) {
+        const el = rl.getElement && rl.getElement();
+        if (el) el.classList.remove("travel-path-animated");
+      }
       const opacity = Math.max(0.08, 0.5 - age * 0.06);
-      rl.setStyle({ opacity });
+      rl.setStyle({ opacity, weight: age === 0 ? 2 : 1.5 });
     });
 
     while (routeLines.length > 20) {
@@ -359,6 +364,7 @@
       const names = newCorruptions.map(id => PORTS.find(p => p.id === id)?.name).filter(Boolean);
       setMessage(`Corruption spreads to: ${names.join(", ")}`);
       addCorruptionLog(`Corruption spreads to: ${names.join(", ")}.`);
+      playCorruptionSting();
     }
   }
 
@@ -797,6 +803,7 @@
             delete state.corruptedPorts[port.id];
             setMessage(`The seal at ${port.name} holds.${wardDiscount > 0 ? " A ward crumbles to dust." : ""} Seals reinforced: ${state.reinforcedSeals.length}/7.`);
             addSealLog(`Seal reinforced at <span class="log-port-name">${port.name}</span>. (${state.reinforcedSeals.length}/7)`);
+            playSealChime();
             // Drowned God retaliates
             drownedGodRetaliation();
           }
@@ -1002,6 +1009,192 @@
     });
   }
 
+  // ─── AUDIO SYSTEM ────────────────────────────────────────
+  const audio = {
+    ctx: null,
+    enabled: false,
+    ambientOsc: null,
+    ambientGain: null,
+    heartbeatInterval: null
+  };
+
+  function initAudio() {
+    const toggle = document.getElementById("sound-toggle");
+    if (!toggle) return;
+
+    toggle.addEventListener("click", () => {
+      if (!audio.ctx) {
+        try {
+          audio.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) { return; }
+      }
+
+      audio.enabled = !audio.enabled;
+      toggle.textContent = audio.enabled ? "\u{1F50A}" : "\u{1F507}";
+      toggle.classList.toggle("sound-on", audio.enabled);
+
+      if (audio.enabled) {
+        startAmbient();
+      } else {
+        stopAmbient();
+        stopHeartbeat();
+      }
+    });
+  }
+
+  function startAmbient() {
+    if (!audio.ctx || audio.ambientOsc) return;
+
+    // Deep ocean drone — layered oscillators
+    const ctx = audio.ctx;
+    audio.ambientGain = ctx.createGain();
+    audio.ambientGain.gain.value = 0;
+    audio.ambientGain.connect(ctx.destination);
+
+    // Base drone
+    audio.ambientOsc = ctx.createOscillator();
+    audio.ambientOsc.type = "sine";
+    audio.ambientOsc.frequency.value = 55; // Low A
+    audio.ambientOsc.connect(audio.ambientGain);
+    audio.ambientOsc.start();
+
+    // Sub-harmonic
+    const sub = ctx.createOscillator();
+    sub.type = "sine";
+    sub.frequency.value = 27.5;
+    const subGain = ctx.createGain();
+    subGain.gain.value = 0.4;
+    sub.connect(subGain);
+    subGain.connect(audio.ambientGain);
+    sub.start();
+    audio._subOsc = sub;
+    audio._subGain = subGain;
+
+    // Fade in
+    audio.ambientGain.gain.linearRampToValueAtTime(0.06, ctx.currentTime + 2);
+  }
+
+  function stopAmbient() {
+    if (audio.ambientOsc) {
+      try { audio.ambientOsc.stop(); } catch (e) {}
+      audio.ambientOsc = null;
+    }
+    if (audio._subOsc) {
+      try { audio._subOsc.stop(); } catch (e) {}
+      audio._subOsc = null;
+    }
+    audio.ambientGain = null;
+  }
+
+  function updateAmbientForState() {
+    if (!audio.enabled || !audio.ctx || !audio.ambientOsc) return;
+    const ctx = audio.ctx;
+    const ratio = getCorruptedPortIds().length / PORTS.length;
+
+    // Shift frequency darker with corruption
+    audio.ambientOsc.frequency.linearRampToValueAtTime(
+      55 - ratio * 20, ctx.currentTime + 1
+    );
+
+    // Get louder with corruption
+    if (audio.ambientGain) {
+      audio.ambientGain.gain.linearRampToValueAtTime(
+        0.06 + ratio * 0.06, ctx.currentTime + 1
+      );
+    }
+
+    // Heartbeat at low sanity
+    if (state.sanity <= 30 && !audio.heartbeatInterval) {
+      startHeartbeat();
+    } else if (state.sanity > 30 && audio.heartbeatInterval) {
+      stopHeartbeat();
+    }
+  }
+
+  function startHeartbeat() {
+    if (!audio.ctx || audio.heartbeatInterval) return;
+    const bpm = state.sanity <= 15 ? 100 : 70;
+    const interval = 60000 / bpm;
+
+    audio.heartbeatInterval = setInterval(() => {
+      if (!audio.enabled || !audio.ctx) return;
+      playHeartbeatPulse();
+    }, interval);
+  }
+
+  function stopHeartbeat() {
+    if (audio.heartbeatInterval) {
+      clearInterval(audio.heartbeatInterval);
+      audio.heartbeatInterval = null;
+    }
+  }
+
+  function playHeartbeatPulse() {
+    if (!audio.ctx) return;
+    const ctx = audio.ctx;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.value = 40;
+    gain.gain.value = 0;
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    const t = ctx.currentTime;
+    // Lub
+    gain.gain.linearRampToValueAtTime(0.12, t + 0.05);
+    gain.gain.linearRampToValueAtTime(0, t + 0.15);
+    // Dub
+    gain.gain.linearRampToValueAtTime(0.08, t + 0.25);
+    gain.gain.linearRampToValueAtTime(0, t + 0.4);
+
+    osc.start(t);
+    osc.stop(t + 0.5);
+  }
+
+  function playCorruptionSting() {
+    if (!audio.enabled || !audio.ctx) return;
+    const ctx = audio.ctx;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sawtooth";
+    osc.frequency.value = 80;
+    gain.gain.value = 0;
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    const t = ctx.currentTime;
+    osc.frequency.linearRampToValueAtTime(40, t + 0.8);
+    gain.gain.linearRampToValueAtTime(0.08, t + 0.05);
+    gain.gain.linearRampToValueAtTime(0, t + 0.8);
+
+    osc.start(t);
+    osc.stop(t + 1);
+  }
+
+  function playSealChime() {
+    if (!audio.enabled || !audio.ctx) return;
+    const ctx = audio.ctx;
+    const freqs = [523, 659, 784]; // C5, E5, G5
+
+    freqs.forEach((f, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = f;
+      gain.gain.value = 0;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      const t = ctx.currentTime + i * 0.15;
+      gain.gain.linearRampToValueAtTime(0.1, t + 0.05);
+      gain.gain.linearRampToValueAtTime(0, t + 0.6);
+
+      osc.start(t);
+      osc.stop(t + 0.7);
+    });
+  }
+
   // ─── VISUAL EFFECTS ────────────────────────────────────────
   function screenShake(intensity) {
     const mapEl = document.getElementById("map");
@@ -1012,12 +1205,18 @@
 
   function updateSanityEffects() {
     const body = document.body;
-    body.classList.remove("sanity-low", "sanity-critical");
+    body.classList.remove("sanity-low", "sanity-critical", "awakening-2", "awakening-3");
     if (state.sanity <= 15) {
       body.classList.add("sanity-critical");
     } else if (state.sanity <= 35) {
       body.classList.add("sanity-low");
     }
+    if (state.awakeningLevel >= 3) {
+      body.classList.add("awakening-3");
+    } else if (state.awakeningLevel >= 2) {
+      body.classList.add("awakening-2");
+    }
+    updateAmbientForState();
   }
 
   // ─── SHIP'S LOG ──────────────────────────────────────────
@@ -1192,6 +1391,7 @@
     renderPorts();
     initLegend();
     initShipsLog();
+    initAudio();
     initAccessibility();
 
     // Check for saved game

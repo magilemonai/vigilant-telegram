@@ -497,6 +497,79 @@ body.sanity-critical .popup-port-name {
   50% { color: #ff3333; text-shadow: 0 0 10px rgba(255, 51, 51, 0.6); }
 }
 
+/* --- Advanced Corruption Visuals --- */
+body.awakening-2 .leaflet-tile {
+  animation: tile-warp 8s ease-in-out infinite;
+}
+
+body.awakening-3 .leaflet-tile {
+  animation: tile-warp 4s ease-in-out infinite;
+}
+
+@keyframes tile-warp {
+  0%, 100% { transform: skew(0deg, 0deg); }
+  25% { transform: skew(0.3deg, -0.2deg); }
+  50% { transform: skew(-0.2deg, 0.3deg); }
+  75% { transform: skew(0.15deg, 0.1deg); }
+}
+
+body.awakening-3 #event-title {
+  animation: text-glitch 3s ease-in-out infinite;
+}
+
+body.awakening-3 .popup-port-name {
+  animation: text-glitch 4s ease-in-out infinite;
+}
+
+@keyframes text-glitch {
+  0%, 90%, 100% { transform: translate(0, 0); filter: none; }
+  92% { transform: translate(-2px, 1px); filter: hue-rotate(90deg); }
+  94% { transform: translate(2px, -1px); filter: hue-rotate(-90deg); }
+  96% { transform: translate(-1px, -1px); filter: none; }
+  98% { transform: translate(1px, 0); filter: hue-rotate(180deg); }
+}
+
+body.awakening-2 #hud-title,
+body.awakening-3 #hud-title {
+  animation: title-flicker 5s ease-in-out infinite;
+}
+
+@keyframes title-flicker {
+  0%, 95%, 100% { opacity: 1; }
+  96% { opacity: 0.3; }
+  97% { opacity: 0.8; }
+  98% { opacity: 0.2; }
+  99% { opacity: 0.9; }
+}
+
+/* Corrupted port name distortion in tooltips */
+body.awakening-2 .leaflet-tooltip,
+body.awakening-3 .leaflet-tooltip {
+  text-shadow: 0 0 2px rgba(160, 50, 80, 0.3);
+}
+
+body.awakening-3 .leaflet-tooltip {
+  animation: tooltip-shake 6s ease-in-out infinite;
+}
+
+@keyframes tooltip-shake {
+  0%, 97%, 100% { transform: translate(0, 0); }
+  97.5% { transform: translate(-1px, 1px); }
+  98% { transform: translate(1px, -1px); }
+  98.5% { transform: translate(-1px, 0); }
+  99% { transform: translate(0, 1px); }
+}
+
+/* --- Animated Travel Path --- */
+.travel-path-animated {
+  stroke-dasharray: 12 6;
+  animation: dash-flow 1.5s linear infinite;
+}
+
+@keyframes dash-flow {
+  to { stroke-dashoffset: -18; }
+}
+
 /* --- Map Legend --- */
 .map-legend {
   background: rgba(12, 10, 18, 0.9);
@@ -568,9 +641,39 @@ body.sanity-critical .popup-port-name {
 }
 
 /* --- Ship's Log --- */
-#log-toggle {
+/* --- Sound Toggle --- */
+#sound-toggle {
   position: fixed;
   top: 60px;
+  right: 16px;
+  z-index: 1002;
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  border: 1px solid rgba(139, 115, 85, 0.4);
+  background: rgba(12, 10, 18, 0.9);
+  color: #c4a35a;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#sound-toggle:hover {
+  background: rgba(139, 115, 85, 0.2);
+  border-color: rgba(196, 163, 90, 0.6);
+}
+
+#sound-toggle.sound-on {
+  border-color: rgba(80, 160, 120, 0.5);
+  color: #5ab87a;
+}
+
+#log-toggle {
+  position: fixed;
+  top: 108px;
   right: 16px;
   z-index: 1002;
   width: 40px;
@@ -749,4 +852,134 @@ body.sanity-critical .popup-port-name {
 #log-content::-webkit-scrollbar-thumb {
   background: rgba(139, 115, 85, 0.3);
   border-radius: 2px;
+}
+
+/* --- Mobile Responsive --- */
+@media (max-width: 768px) {
+  #hud {
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 12px;
+    align-items: flex-start;
+  }
+
+  #hud-title {
+    font-size: 14px;
+    letter-spacing: 2px;
+  }
+
+  #hud-stats {
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    font-size: 12px;
+  }
+
+  #hud-message {
+    text-align: left;
+    font-size: 12px;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #event-panel {
+    bottom: 8px;
+    padding: 16px;
+    width: min(600px, 95vw);
+    max-height: 50vh;
+    overflow-y: auto;
+  }
+
+  #event-title {
+    font-size: 15px;
+  }
+
+  #event-text {
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+
+  #event-choices button {
+    padding: 12px 14px;
+    font-size: 14px;
+    min-height: 44px;
+  }
+
+  .port-marker {
+    min-width: 24px;
+    min-height: 24px;
+  }
+
+  #sound-toggle,
+  #log-toggle {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+
+  #sound-toggle {
+    top: 54px;
+    right: 8px;
+  }
+
+  #log-toggle {
+    top: 96px;
+    right: 8px;
+  }
+
+  .popup-btn {
+    padding: 8px 14px;
+    font-size: 13px;
+    min-height: 44px;
+  }
+
+  #intro-content {
+    padding: 24px 16px;
+  }
+
+  #intro-content h1 {
+    font-size: 24px;
+    letter-spacing: 3px;
+  }
+
+  .subtitle {
+    font-size: 15px;
+    margin-bottom: 16px;
+  }
+
+  .intro-text p {
+    font-size: 14px;
+  }
+
+  .diff-options {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .diff-btn {
+    padding: 10px;
+    min-height: 44px;
+  }
+
+  .map-legend {
+    font-size: 10px;
+    padding: 6px 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  #hud-stats {
+    font-size: 11px;
+    gap: 6px 10px;
+  }
+
+  #event-panel {
+    max-height: 60vh;
+  }
+
+  #ships-log {
+    width: 100vw;
+  }
 }
