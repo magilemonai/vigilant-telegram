@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Drowned Meridian — EMEA Ports of Dread</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="map"></div>
+
+  <div id="hud">
+    <div id="hud-title">THE DROWNED MERIDIAN</div>
+    <div id="hud-stats">
+      <span>Sanity: <span id="sanity">100</span>%</span>
+      <span>Seals Intact: <span id="seals">7</span>/7</span>
+      <span>Turn: <span id="turn">1</span></span>
+    </div>
+    <div id="hud-message"></div>
+  </div>
+
+  <div id="event-panel" class="hidden">
+    <div id="event-title"></div>
+    <div id="event-text"></div>
+    <div id="event-choices"></div>
+  </div>
+
+  <div id="intro-overlay">
+    <div id="intro-content">
+      <h1>THE DROWNED MERIDIAN</h1>
+      <p class="subtitle">A Cartographic Horror</p>
+      <div class="intro-text">
+        <p>Ancient seals bind a sleeping god beneath the trade routes of the Old World.
+        Seven meridian anchors — hidden in ports from Reykjavik to Cape Town,
+        from Lisbon to Vladivostok — keep <em>It</em> from waking.</p>
+        <p>The seals are failing. Eldritch corruption spreads through the ports.
+        You are a cartographer of the Meridian Society, tasked with sailing
+        between ports, investigating the corruption, and reinforcing the seals
+        before the Drowned God rises.</p>
+        <p>But each seal you touch erodes your mind. Each turn, the corruption spreads.
+        And <em>It</em> is dreaming of you.</p>
+      </div>
+      <button id="start-btn">UNFOLD THE CHART</button>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="ports.js"></script>
+  <script src="horror.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
