@@ -160,10 +160,22 @@ const HORROR = {
   ],
 
   /**
+   * Pick a random event from a pool, avoiding recent titles
+   */
+  _pickAvoidingRepeats(pool, recentEvents) {
+    // Filter out recently seen events
+    let candidates = pool.filter(e => !recentEvents.includes(e.title));
+    // Fallback to full pool if all have been seen recently
+    if (candidates.length === 0) candidates = pool;
+    return candidates[Math.floor(Math.random() * candidates.length)];
+  },
+
+  /**
    * Select a random event appropriate for the port's state
    */
   getEvent(port, gameState) {
     let pool;
+    const recent = gameState.recentEvents || [];
 
     if (port.sealSite && !gameState.reinforcedSeals.includes(port.id)) {
       // 60% chance of seal event at unreinforced seal sites
@@ -175,7 +187,7 @@ const HORROR = {
       pool = Math.random() < 0.7 ? this.safeEvents : this.corruptionEvents;
     }
 
-    const event = pool[Math.floor(Math.random() * pool.length)];
+    const event = this._pickAvoidingRepeats(pool, recent);
     return {
       ...event,
       title: event.title,
@@ -184,10 +196,11 @@ const HORROR = {
   },
 
   /**
-   * Get a random global event for between turns
+   * Get a random global event for between turns (avoids recent repeats)
    */
-  getGlobalEvent() {
-    return this.globalEvents[Math.floor(Math.random() * this.globalEvents.length)];
+  getGlobalEvent(recentEvents) {
+    const recent = recentEvents || [];
+    return this._pickAvoidingRepeats(this.globalEvents, recent);
   },
 
   /**

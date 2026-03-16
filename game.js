@@ -17,9 +17,9 @@
     corruptedPorts: [],
     visitedPorts: [],
     currentPort: null,
-    playerMarker: null,
     awakeningLevel: 0,  // 0-4, at 4 the god wakes
     loreFragments: [],
+    recentEvents: [],   // track last N event titles to prevent repeats
     gameOver: false
   };
 
@@ -98,7 +98,23 @@
       if (state.reinforcedSeals.includes(port.id)) {
         el.classList.add("sealed");
       }
+
+      // Update tooltip to show corrupted name
+      marker.unbindTooltip();
+      marker.bindTooltip(getDisplayName(port), {
+        direction: "top",
+        offset: [0, -12],
+        className: "port-tooltip"
+      });
     });
+  }
+
+  // ─── PORT DISPLAY NAME (corrupted mutation) ─────────────────
+  function getDisplayName(port) {
+    if (state.corruptedPorts.includes(port.id) && port.corruptedName) {
+      return port.corruptedName;
+    }
+    return port.name;
   }
 
   // ─── PORT POPUP ─────────────────────────────────────────────
@@ -106,6 +122,7 @@
     const isCorrupted = state.corruptedPorts.includes(port.id);
     const isSealed = state.reinforcedSeals.includes(port.id);
     const isHere = state.currentPort && state.currentPort.id === port.id;
+    const displayName = getDisplayName(port);
 
     let statusTag = "";
     if (isCorrupted) statusTag = ' <span style="color:#c44a4a;">[CORRUPTED]</span>';
@@ -122,7 +139,7 @@
     }
 
     return `
-      <div class="popup-port-name">${port.name}${statusTag}</div>
+      <div class="popup-port-name">${displayName}${statusTag}</div>
       <div class="popup-port-region">${port.region} — ${port.country}</div>
       <div class="popup-port-desc">${port.desc}</div>
       ${port.sealSite ? '<div style="color:#c4a35a;font-size:12px;margin-bottom:6px;">&#x2609; MERIDIAN SEAL SITE</div>' : ""}
@@ -147,9 +164,21 @@
   function drawRoute(from, to) {
     const line = L.polyline(
       [[from.lat, from.lng], [to.lat, to.lng]],
-      { color: "rgba(139,115,85,0.3)", dashArray: "6 4", weight: 1 }
+      { color: "rgba(139,115,85,0.4)", dashArray: "6 4", weight: 1.5 }
     ).addTo(map);
     routeLines.push(line);
+
+    // Fade older routes so the map doesn't get cluttered
+    routeLines.forEach((rl, i) => {
+      const age = routeLines.length - 1 - i;
+      const opacity = Math.max(0.08, 0.4 - age * 0.05);
+      rl.setStyle({ opacity });
+    });
+
+    // Remove very old routes from the map entirely
+    while (routeLines.length > 20) {
+      map.removeLayer(routeLines.shift());
+    }
   }
 
   // ─── PLAYER ACTIONS ─────────────────────────────────────────
@@ -201,19 +230,24 @@
     map.closePopup();
     map.flyTo([port.lat, port.lng], 5, { duration: 1.5 });
 
-    // Show global event every 3 turns
+    // Show global event every 3 turns, then chain into port event
     if (state.turn % 3 === 0) {
-      const globalEvt = HORROR.getGlobalEvent();
+      const globalEvt = HORROR.getGlobalEvent(state.recentEvents);
       state.corruptedPorts.push(
         ...HORROR.spreadCorruption(PORTS, state.corruptedPorts, globalEvt.corruption)
       );
+      updateMarkerStyles();
       setTimeout(() => {
         showEvent({
           title: globalEvt.title,
           text: globalEvt.text,
-          choices: [{ text: "Noted", effect: "nothing", value: 0 }]
+          choices: [{
+            text: "Noted",
+            effect: "nothing",
+            value: 0,
+            _then: () => setTimeout(() => showEvent(HORROR.getEvent(port, state)), 300)
+          }]
         });
-        // Then show port event after dismissal
       }, 500);
     } else {
       setTimeout(() => showEvent(HORROR.getEvent(port, state)), 500);
@@ -240,6 +274,10 @@
     const title = document.getElementById("event-title");
     const text = document.getElementById("event-text");
     const choices = document.getElementById("event-choices");
+
+    // Track recent events for repetition prevention
+    state.recentEvents.push(event.title);
+    if (state.recentEvents.length > 5) state.recentEvents.shift();
 
     title.textContent = event.title;
     text.textContent = event.text;
@@ -309,10 +347,23 @@
       setMessage(getMessage() + ` [Acquired: ${formatBonus(choice.bonus)}]`);
     }
 
+    // Shake screen on significant sanity loss
+    if (choice.effect === "sanity" && choice.value <= -10) {
+      screenShake(3);
+    } else if (choice.effect === "seal_reinforce") {
+      screenShake(5);
+    }
+
     checkGameEnd();
     updateHUD();
     updateMarkerStyles();
     updateCorruptionOverlay();
+    updateSanityEffects();
+
+    // Support chained events (e.g., global event → port event)
+    if (typeof choice._then === "function") {
+      choice._then();
+    }
   }
 
   function formatBonus(bonus) {
@@ -407,6 +458,42 @@
     });
   }
 
+  // ─── VISUAL EFFECTS ────────────────────────────────────────
+  function screenShake(intensity) {
+    const mapEl = document.getElementById("map");
+    mapEl.classList.add("screen-shake");
+    mapEl.style.setProperty("--shake-intensity", intensity + "px");
+    setTimeout(() => mapEl.classList.remove("screen-shake"), 400);
+  }
+
+  function updateSanityEffects() {
+    const body = document.body;
+    body.classList.remove("sanity-low", "sanity-critical");
+    if (state.sanity <= 15) {
+      body.classList.add("sanity-critical");
+    } else if (state.sanity <= 35) {
+      body.classList.add("sanity-low");
+    }
+  }
+
+  // ─── MAP LEGEND ───────────────────────────────────────────
+  function initLegend() {
+    const legend = L.control({ position: "bottomleft" });
+    legend.onAdd = function () {
+      const div = L.DomUtil.create("div", "map-legend");
+      div.innerHTML = `
+        <div class="legend-title">CHART KEY</div>
+        <div class="legend-item"><span class="legend-icon seal-icon">&#x2609;</span> Meridian Seal</div>
+        <div class="legend-item"><span class="legend-icon port-icon">&#x2693;</span> Port of Call</div>
+        <div class="legend-item"><span class="legend-icon corrupted-icon">&#x2693;</span> Corrupted</div>
+        <div class="legend-item"><span class="legend-icon sealed-icon">&#x2609;</span> Seal Reinforced</div>
+        <div class="legend-item"><span class="legend-icon player-icon">&#x25C9;</span> Your Location</div>
+      `;
+      return div;
+    };
+    legend.addTo(map);
+  }
+
   // ─── INTRO ─────────────────────────────────────────────────
   function initIntro() {
     document.getElementById("start-btn").addEventListener("click", () => {
@@ -422,6 +509,7 @@
   function init() {
     initMap();
     renderPorts();
+    initLegend();
     initIntro();
     updateHUD();
   }

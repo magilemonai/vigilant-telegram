@@ -15,6 +15,7 @@ const PORTS = [
   {
     id: "reykjavik",
     name: "Reykjavik",
+    corruptedName: "Reyk'javik",
     country: "Iceland",
     region: "Northern Europe",
     lat: 64.15, lng: -21.95,
@@ -25,6 +26,7 @@ const PORTS = [
   {
     id: "bergen",
     name: "Bergen",
+    corruptedName: "Ber'ghen",
     country: "Norway",
     lat: 60.39, lng: 5.32,
     region: "Northern Europe",
@@ -34,6 +36,7 @@ const PORTS = [
   {
     id: "oslo",
     name: "Oslo",
+    corruptedName: "Os'loh",
     country: "Norway",
     lat: 59.91, lng: 10.75,
     region: "Northern Europe",
@@ -43,6 +46,7 @@ const PORTS = [
   {
     id: "stockholm",
     name: "Stockholm",
+    corruptedName: "Stokk'holm",
     country: "Sweden",
     lat: 59.33, lng: 18.07,
     region: "Northern Europe",
@@ -52,6 +56,7 @@ const PORTS = [
   {
     id: "helsinki",
     name: "Helsinki",
+    corruptedName: "Hels'inki",
     country: "Finland",
     lat: 60.17, lng: 24.94,
     region: "Northern Europe",
@@ -61,6 +66,7 @@ const PORTS = [
   {
     id: "st_petersburg",
     name: "Saint Petersburg",
+    corruptedName: "Sankt Pet'erburgh",
     country: "Russia",
     lat: 59.93, lng: 30.32,
     region: "Northern Europe",
@@ -70,6 +76,7 @@ const PORTS = [
   {
     id: "copenhagen",
     name: "Copenhagen",
+    corruptedName: "Koph'enhagen",
     country: "Denmark",
     lat: 55.68, lng: 12.57,
     region: "Northern Europe",
@@ -79,6 +86,7 @@ const PORTS = [
   {
     id: "edinburgh",
     name: "Edinburgh (Leith)",
+    corruptedName: "Edin'bhurgh",
     country: "United Kingdom",
     lat: 55.98, lng: -3.17,
     region: "Northern Europe",
@@ -90,6 +98,7 @@ const PORTS = [
   {
     id: "london",
     name: "London",
+    corruptedName: "Lon'duhn",
     country: "United Kingdom",
     lat: 51.51, lng: -0.08,
     region: "Western Europe",
@@ -100,6 +109,7 @@ const PORTS = [
   {
     id: "amsterdam",
     name: "Amsterdam",
+    corruptedName: "Amster'dahm",
     country: "Netherlands",
     lat: 52.38, lng: 4.90,
     region: "Western Europe",
@@ -109,6 +119,7 @@ const PORTS = [
   {
     id: "rotterdam",
     name: "Rotterdam",
+    corruptedName: "Rott'erdahm",
     country: "Netherlands",
     lat: 51.92, lng: 4.48,
     region: "Western Europe",
@@ -118,6 +129,7 @@ const PORTS = [
   {
     id: "hamburg",
     name: "Hamburg",
+    corruptedName: "Ham'burgh",
     country: "Germany",
     lat: 53.55, lng: 9.99,
     region: "Western Europe",
@@ -127,6 +139,7 @@ const PORTS = [
   {
     id: "antwerp",
     name: "Antwerp",
+    corruptedName: "Ant'wehrp",
     country: "Belgium",
     lat: 51.22, lng: 4.40,
     region: "Western Europe",
@@ -136,6 +149,7 @@ const PORTS = [
   {
     id: "le_havre",
     name: "Le Havre",
+    corruptedName: "Le H'avre",
     country: "France",
     lat: 49.49, lng: 0.11,
     region: "Western Europe",
@@ -145,6 +159,7 @@ const PORTS = [
   {
     id: "lisbon",
     name: "Lisbon",
+    corruptedName: "Lis'bhon",
     country: "Portugal",
     lat: 38.72, lng: -9.14,
     region: "Western Europe",
@@ -155,6 +170,7 @@ const PORTS = [
   {
     id: "bilbao",
     name: "Bilbao",
+    corruptedName: "Bil'bhao",
     country: "Spain",
     lat: 43.26, lng: -2.93,
     region: "Western Europe",
@@ -164,6 +180,7 @@ const PORTS = [
   {
     id: "brest",
     name: "Brest",
+    corruptedName: "Br'est",
     country: "France",
     lat: 48.39, lng: -4.49,
     region: "Western Europe",
@@ -175,6 +192,7 @@ const PORTS = [
   {
     id: "barcelona",
     name: "Barcelona",
+    corruptedName: "Barcel'ohna",
     country: "Spain",
     lat: 41.38, lng: 2.17,
     region: "Mediterranean",
@@ -184,6 +202,7 @@ const PORTS = [
   {
     id: "marseille",
     name: "Marseille",
+    corruptedName: "Mar'seille",
     country: "France",
     lat: 43.30, lng: 5.37,
     region: "Mediterranean",
@@ -193,6 +212,7 @@ const PORTS = [
   {
     id: "genoa",
     name: "Genoa",
+    corruptedName: "Gen'oha",
     country: "Italy",
     lat: 44.41, lng: 8.93,
     region: "Mediterranean",
@@ -202,6 +222,7 @@ const PORTS = [
   {
     id: "naples",
     name: "Naples",
+    corruptedName: "Nap'oleth",
     country: "Italy",
     lat: 40.85, lng: 14.27,
     region: "Mediterranean",
@@ -211,6 +232,7 @@ const PORTS = [
   {
     id: "valletta",
     name: "Valletta",
+    corruptedName: "Val'lhetta",
     country: "Malta",
     lat: 35.90, lng: 14.51,
     region: "Mediterranean",
@@ -220,6 +242,7 @@ const PORTS = [
   {
     id: "piraeus",
     name: "Piraeus (Athens)",
+    corruptedName: "Pir'aeus (Ath'ens)",
     country: "Greece",
     lat: 37.94, lng: 23.65,
     region: "Mediterranean",
@@ -230,6 +253,7 @@ const PORTS = [
   {
     id: "dubrovnik",
     name: "Dubrovnik",
+    corruptedName: "Dubr'ovhnik",
     country: "Croatia",
     lat: 42.65, lng: 18.09,
     region: "Mediterranean",
@@ -239,6 +263,7 @@ const PORTS = [
   {
     id: "venice",
     name: "Venice",
+    corruptedName: "Ven'ithce",
     country: "Italy",
     lat: 45.44, lng: 12.32,
     region: "Mediterranean",
@@ -248,6 +273,7 @@ const PORTS = [
   {
     id: "algiers",
     name: "Algiers",
+    corruptedName: "Al'ghiers",
     country: "Algeria",
     lat: 36.75, lng: 3.04,
     region: "Mediterranean",
@@ -257,6 +283,7 @@ const PORTS = [
   {
     id: "tunis",
     name: "Tunis",
+    corruptedName: "Thu'nis",
     country: "Tunisia",
     lat: 36.81, lng: 10.18,
     region: "Mediterranean",
@@ -266,6 +293,7 @@ const PORTS = [
   {
     id: "alexandria",
     name: "Alexandria",
+    corruptedName: "Alexan'dhria",
     country: "Egypt",
     lat: 31.20, lng: 29.92,
     region: "Mediterranean",
@@ -278,6 +306,7 @@ const PORTS = [
   {
     id: "odesa",
     name: "Odesa",
+    corruptedName: "Ode'sha",
     country: "Ukraine",
     lat: 46.48, lng: 30.74,
     region: "Black Sea",
@@ -287,6 +316,7 @@ const PORTS = [
   {
     id: "constanta",
     name: "Constanta",
+    corruptedName: "Con'sthanта",
     country: "Romania",
     lat: 44.18, lng: 28.63,
     region: "Black Sea",
@@ -296,6 +326,7 @@ const PORTS = [
   {
     id: "istanbul",
     name: "Istanbul",
+    corruptedName: "Ist'anbul",
     country: "Turkey",
     lat: 41.01, lng: 28.98,
     region: "Black Sea",
@@ -306,6 +337,7 @@ const PORTS = [
   {
     id: "batumi",
     name: "Batumi",
+    corruptedName: "Bat'humi",
     country: "Georgia",
     lat: 41.64, lng: 41.64,
     region: "Black Sea",
@@ -317,6 +349,7 @@ const PORTS = [
   {
     id: "beirut",
     name: "Beirut",
+    corruptedName: "Bei'rhut",
     country: "Lebanon",
     lat: 33.89, lng: 35.50,
     region: "Middle East",
@@ -326,6 +359,7 @@ const PORTS = [
   {
     id: "haifa",
     name: "Haifa",
+    corruptedName: "Hai'fha",
     country: "Israel",
     lat: 32.79, lng: 34.99,
     region: "Middle East",
@@ -335,6 +369,7 @@ const PORTS = [
   {
     id: "jeddah",
     name: "Jeddah",
+    corruptedName: "Jed'dhah",
     country: "Saudi Arabia",
     lat: 21.49, lng: 39.19,
     region: "Middle East",
@@ -344,6 +379,7 @@ const PORTS = [
   {
     id: "dubai",
     name: "Dubai (Jebel Ali)",
+    corruptedName: "Dub'hai",
     country: "UAE",
     lat: 25.01, lng: 55.06,
     region: "Middle East",
@@ -353,6 +389,7 @@ const PORTS = [
   {
     id: "muscat",
     name: "Muscat",
+    corruptedName: "Mus'khat",
     country: "Oman",
     lat: 23.61, lng: 58.54,
     region: "Middle East",
@@ -362,6 +399,7 @@ const PORTS = [
   {
     id: "aden",
     name: "Aden",
+    corruptedName: "Adh'en",
     country: "Yemen",
     lat: 12.80, lng: 45.03,
     region: "Middle East",
@@ -373,6 +411,7 @@ const PORTS = [
   {
     id: "djibouti",
     name: "Djibouti",
+    corruptedName: "Djib'outhi",
     country: "Djibouti",
     lat: 11.59, lng: 43.15,
     region: "East Africa",
@@ -382,6 +421,7 @@ const PORTS = [
   {
     id: "mogadishu",
     name: "Mogadishu",
+    corruptedName: "Mog'adishuh",
     country: "Somalia",
     lat: 2.05, lng: 45.32,
     region: "East Africa",
@@ -391,6 +431,7 @@ const PORTS = [
   {
     id: "mombasa",
     name: "Mombasa",
+    corruptedName: "Momb'asa",
     country: "Kenya",
     lat: -4.04, lng: 39.67,
     region: "East Africa",
@@ -400,6 +441,7 @@ const PORTS = [
   {
     id: "dar_es_salaam",
     name: "Dar es Salaam",
+    corruptedName: "Dar es Sal'ahm",
     country: "Tanzania",
     lat: -6.79, lng: 39.28,
     region: "East Africa",
@@ -409,6 +451,7 @@ const PORTS = [
   {
     id: "zanzibar",
     name: "Zanzibar (Stone Town)",
+    corruptedName: "Zan'zibhar",
     country: "Tanzania",
     lat: -6.16, lng: 39.19,
     region: "East Africa",
@@ -418,6 +461,7 @@ const PORTS = [
   {
     id: "maputo",
     name: "Maputo",
+    corruptedName: "Map'utho",
     country: "Mozambique",
     lat: -25.97, lng: 32.57,
     region: "East Africa",
@@ -429,6 +473,7 @@ const PORTS = [
   {
     id: "casablanca",
     name: "Casablanca",
+    corruptedName: "Casa'blhanca",
     country: "Morocco",
     lat: 33.59, lng: -7.62,
     region: "West Africa",
@@ -438,6 +483,7 @@ const PORTS = [
   {
     id: "dakar",
     name: "Dakar",
+    corruptedName: "Dak'har",
     country: "Senegal",
     lat: 14.69, lng: -17.44,
     region: "West Africa",
@@ -448,6 +494,7 @@ const PORTS = [
   {
     id: "abidjan",
     name: "Abidjan",
+    corruptedName: "Abid'jhan",
     country: "Ivory Coast",
     lat: 5.36, lng: -4.01,
     region: "West Africa",
@@ -457,6 +504,7 @@ const PORTS = [
   {
     id: "accra",
     name: "Accra (Tema)",
+    corruptedName: "Ak'kra",
     country: "Ghana",
     lat: 5.62, lng: -0.02,
     region: "West Africa",
@@ -466,6 +514,7 @@ const PORTS = [
   {
     id: "lagos",
     name: "Lagos",
+    corruptedName: "Lag'hos",
     country: "Nigeria",
     lat: 6.45, lng: 3.40,
     region: "West Africa",
@@ -475,6 +524,7 @@ const PORTS = [
   {
     id: "douala",
     name: "Douala",
+    corruptedName: "Dou'ahla",
     country: "Cameroon",
     lat: 4.05, lng: 9.77,
     region: "West Africa",
@@ -486,6 +536,7 @@ const PORTS = [
   {
     id: "luanda",
     name: "Luanda",
+    corruptedName: "Lu'andha",
     country: "Angola",
     lat: -8.84, lng: 13.23,
     region: "Southern Africa",
@@ -495,6 +546,7 @@ const PORTS = [
   {
     id: "walvis_bay",
     name: "Walvis Bay",
+    corruptedName: "Walv'is Bhay",
     country: "Namibia",
     lat: -22.96, lng: 14.51,
     region: "Southern Africa",
@@ -504,6 +556,7 @@ const PORTS = [
   {
     id: "cape_town",
     name: "Cape Town",
+    corruptedName: "Cape T'hown",
     country: "South Africa",
     lat: -33.92, lng: 18.42,
     region: "Southern Africa",
@@ -513,6 +566,7 @@ const PORTS = [
   {
     id: "durban",
     name: "Durban",
+    corruptedName: "Dur'bhan",
     country: "South Africa",
     lat: -29.86, lng: 31.03,
     region: "Southern Africa",
@@ -522,6 +576,7 @@ const PORTS = [
   {
     id: "port_louis",
     name: "Port Louis",
+    corruptedName: "Port Lou'his",
     country: "Mauritius",
     lat: -20.16, lng: 57.50,
     region: "Southern Africa",
