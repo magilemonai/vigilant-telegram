@@ -15,11 +15,24 @@ Every file, every system, made better. Organized by file, then by priority.
   - **Mediterranean**: Tangier, Split, Beirut's neighbor Tripoli (Lebanon)
 - Add a `sealSite` in the Middle East (Muscat) and Southern Africa (Cape Town) — currently those regions have zero seals, making them feel like dead zones
 
-### 1b. Port interconnections
+### 1b. Port interconnections (sea-route graph)
 - Add a `connections` array to each port listing nearby reachable ports (graph edges)
-- Use these to constrain travel (no teleporting Reykjavik→Cape Town in one turn)
+- **CRITICAL: Routes must follow navigable waterways — no paths through landmass**
+  - All connections must represent real sea lanes (coastwise or open-water)
+  - Strait chokepoints become mandatory waypoints:
+    - **Gibraltar**: only way between Atlantic and Mediterranean
+    - **Suez Canal / Port Said**: only way between Mediterranean and Red Sea
+    - **Bab el-Mandeb (Aden/Djibouti)**: gateway between Red Sea and Indian Ocean
+    - **Bosporus (Istanbul)**: only way into/out of the Black Sea
+    - **English Channel**: primary North Sea ↔ Atlantic route
+    - **Cape of Good Hope (Cape Town)**: rounding Africa between Atlantic and Indian Ocean
+  - Routes hug coastlines where appropriate (West Africa chain, East Africa chain)
+  - Open-water crossings only where historically sailed (e.g., Mediterranean cross-basin)
+  - No Lisbon→Mombasa, no Reykjavik→Cape Town — multi-hop only
+- **Strategic gameplay consequence**: chokepoint ports (Istanbul, Gibraltar/Tangier, Aden, Suez) are high-value targets the Drowned God should prioritize for corruption, since blocking them cuts off entire regions
 - Show connection lines on the map as faint trade routes
 - Connections also serve as corruption spread paths (replaces the vague 15-degree proximity check)
+- Use these to constrain travel (player can only sail to connected ports)
 
 ### 1c. Port attributes for gameplay variety
 - Add `resources` field: `"fuel" | "lore" | "sanctuary" | "trade"` — gives ports mechanical identity
@@ -85,11 +98,15 @@ Every file, every system, made better. Organized by file, then by priority.
 - Guard against null `currentPort` in loss screen text
 - Clear old route lines after 10+ segments to prevent map clutter (or fade them over time)
 
-### 3b. Travel system
-- Implement connection-based travel (only sail to connected ports)
+### 3b. Travel system (sea-route constrained)
+- Implement connection-based travel — player can **only** sail to ports connected by sea routes
+- **No travel through landmass**: connections encode real navigable waterways; the engine enforces this by only offering connected ports as destinations
+- Popup "Sail here" button only appears for directly connected ports
+- Add a "Sail via" multi-hop planner: if destination is 2-3 hops away, show the route with intermediate stops
 - Add travel cost: longer routes cost 1-3 sanity (fatigue at sea)
-- Add travel events: 20% chance of encountering something mid-voyage (storms, ghost ships, becalmed waters)
-- Animate the travel path (dotted line draws itself)
+- Add travel events: 20% chance of encountering something mid-voyage (storms, ghost ships, becalmed waters, the Drowned God's attention)
+- **Chokepoint hazards**: sailing through strait chokepoints (Gibraltar, Bosporus, Suez, Bab el-Mandeb) has increased event chance if they're corrupted — you must pass through the corruption
+- Animate the travel path (dotted line draws itself along the sea route)
 - Show an estimated arrival indicator and route preview before confirming travel
 
 ### 3c. Turn structure
